@@ -51,7 +51,37 @@ void parseRForm (rform instruction) {
 		case 10011:
 			return op_mtlo (instruction);
 		case 100100:
-			return op_mtlo (instruction);
+			return op_and (instruction);
+		case 100110:
+			return op_xor (instruction);
+		case 100111:
+			return op_nor (instruction);
+		case 100101:
+			return op_or (instruction);
+		case 0:
+			return op_sll (instruction);
+		case 100:
+			return op_sllv (instruction);
+		case 101010:
+			return op_slt (instruction);
+		case 101011:
+			return op_slt (instruction);
+		case 11:
+			return op_sra (instruction);
+		case 111:
+			return op_srav (instruction);
+		case 10:
+			return op_srl (instruction);
+		case 110:
+			return op_srlv (instruction);
+		case 1001:
+			return op_jalr (instruction);
+		case 1000:
+			return op_jr (instruction);
+		case 1100:
+			return op_syscall (instruction);
+		case 0: //check if sll  = nop
+			return op_nop (instruction);
 	}
 }
 
