@@ -85,64 +85,84 @@ void parseRForm (rform instruction) {
 	}
 }
 
-
-extern void op_add (rform instruction);
-extern void op_addi (iform instruction);
-extern void op_addiu (iform instruction);
-extern void op_addu (rform instruction);
-extern void op_sub (rform instruction);
-extern void op_subu (rform instruction);
-extern void op_div (rform instruction);
-extern void op_divu (rform instruction);
-extern void op_mult (rform instruction);
-extern void op_multu (rform instruction);
-extern void op_mfhi (rform instruction);
-extern void op_mflo (rform instruction);
-extern void op_mthi (rform instruction);
-extern void op_mtlo (rform instruction);
-extern void op_and (rform instruction); 
-extern void op_andi (iform instruction); 
-extern void op_xor (rform instruction);
-extern void op_xori (iform instruction);
-extern void op_nor (rform instruction);
-extern void op_or (rform instruction);
-extern void op_ori (iform instruction);
-extern void op_sll(rform instruction);
-extern void op_slv (rform instruction);
-extern void op_slt (rform instruction);
-extern void op_slti (iform instruction);
-extern void op_sltiu (iform instruction);
-extern void op_sltu (rform instruction);
-extern void op_sra (rform instruction);
-extern void op_srav (rform instruction);
-extern void op_srl (rform instruction);
-extern void op_srlv (rform instruction);
-extern void op_beq (iform instruction);
-extern void op_beql (iform instruction);
-extern void op_bgez (iform instruction);
-extern void op_bgtz (iform instruction);
-extern void op_blez (iform instruction);
-extern void op_blezl (iform instruction);
-extern void op_bltz (iform instruction);
-extern void op_bltzal (iform instruction);
-extern void op_bne (iform instruction);
-extern void op_bnel (iform instruction);
-extern void op_j (jform instruction);
-extern void op_jal (jform instruction);
-extern void op_jalr (rform instruction);
-extern void op_jr (rform instruction);
-extern void op_lb (iform instruction);
-extern void op_lbu (iform instruction);
-extern void op_lh (iform instruction);
-extern void op_lhu (iform instruction);
-extern void op_lui (iform instruction);
-extern void op_lw (iform instruction);
-extern void op_lwl (iform instruction);
-extern void op_lwr (iform instruction);
-extern void op_sb (iform instruction);
-extern void op_sh (iform instruction);
-extern void op_sw (iform instruction);
-extern void op_swl (iform instruction);
-extern void op_swr (iform instruction);
-extern void op_syscall (rform instruction);
-extern void op_nop (rform instruction);
+void parseIForm (iform instruction) {
+switch (instruction.opcode) {
+	case 0x08: 
+		return op_addi(instruction);
+	case 0x09: 
+		return op_addiu(instruction);
+	case 0x0C: 
+		return op_andi(instruction);
+	case 001110: 
+		return op_xori(instruction);
+	case 0x0D: 
+		return op_ori(instruction);
+	case 0x0A: 
+		return op_slti(instruction);
+	case 0x0B: 
+		return op_sltiu(instruction);
+	case 0x04: 
+		return op_beq(instruction);
+}
+}
+ 
+void op_add (rform instruction);
+void op_addi (iform instruction);
+void op_addiu (iform instruction);
+void op_addu (rform instruction);
+void op_sub (rform instruction);
+void op_subu (rform instruction);
+void op_div (rform instruction);
+void op_divu (rform instruction);
+void op_mult (rform instruction);
+void op_multu (rform instruction);
+void op_mfhi (rform instruction);
+void op_mflo (rform instruction);
+void op_mthi (rform instruction);
+void op_mtlo (rform instruction);
+void op_and (rform instruction); 
+void op_andi (iform instruction); 
+void op_xor (rform instruction);
+void op_xori (iform instruction);
+void op_nor (rform instruction);
+void op_or (rform instruction);
+void op_ori (iform instruction);
+void op_sll(rform instruction);
+void op_slv (rform instruction);
+void op_slt (rform instruction);
+void op_slti (iform instruction);
+void op_sltiu (iform instruction);
+void op_sltu (rform instruction);
+void op_sra (rform instruction);
+void op_srav (rform instruction);
+void op_srl (rform instruction);
+void op_srlv (rform instruction);
+void op_beq (iform instruction);
+void op_beql (iform instruction);
+void op_bgez (iform instruction);
+void op_bgtz (iform instruction);
+void op_blez (iform instruction);
+void op_blezl (iform instruction);
+void op_bltz (iform instruction);
+void op_bltzal (iform instruction);
+void op_bne (iform instruction);
+void op_bnel (iform instruction);
+void op_j (jform instruction);
+void op_jal (jform instruction);
+void op_jalr (rform instruction);
+void op_jr (rform instruction);
+void op_lb (iform instruction);
+void op_lbu (iform instruction);
+void op_lh (iform instruction);
+void op_lhu (iform instruction);
+void op_lui (iform instruction);
+void op_lw (iform instruction);
+void op_lwl (iform instruction);
+void op_lwr (iform instruction);
+void op_sb (iform instruction);
+void op_sh (iform instruction);
+void op_sw (iform instruction);
+void op_swl (iform instruction);
+void op_swr (iform instruction);
+void op_syscall (rform instruction);
+void op_nop (rform instruction);
