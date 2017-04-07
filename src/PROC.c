@@ -6,7 +6,7 @@
 #include "Syscall.h"
 #include "utils/heap.h"
 #include "elf_reader/elf_reader.h"
-
+#include "instructions.h"
 //Stats
 
 uint32_t DynInstCount = 0;
@@ -48,18 +48,17 @@ int main(int argc, char * argv[]) {
     //set Global & Stack Pointers for the Emulator
     // & provide startAddress of Program in Memory to Processor
     write_initialization_vector(exec.GSP, exec.GP, exec.GPC_START);
-
+   
     printf("\n ----- Execute Program ----- \n");
     printf("Max Instruction to run = %d \n",MaxInst);
     PC = exec.GPC_START;
     for(i=0; i<MaxInst ; i++) {
         DynInstCount++;
+        PC++;
         CurrentInstruction = readWord(PC,false);  
+        parseInstruction(CurrentInstruction);
         printRegFile();
-    /********************************/
-    //Add your implementation here
-    /********************************/
-
+            
     } //end fori
     
     
