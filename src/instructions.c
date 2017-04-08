@@ -103,9 +103,64 @@ switch (instruction.opcode) {
 		return op_sltiu(instruction);
 	case 0x04: 
 		return op_beq(instruction);
-}
+	case 010100: 
+		return op_beql(instruction);
+	case 000001: 
+		return op_bgez(instruction);
+	case 000001: //same opcode
+		return op_bgezal(instruction);
+	case 111: 
+		return op_bgtz(instruction);
+	case 110: 
+		return op_blez(instruction);
+	case 10110: 
+		return op_blezl(instruction);
+	case 000001: //same opcode
+		return op_bltz(instruction);
+	case 000001: //same opcode
+		return op_bltzal(instruction);
+	case 101: 
+		return op_bne(instruction);
+	case 10101: 
+		return op_bnel(instruction);
+	case 100000: 
+		return op_lb(instruction);
+	case 100100: 
+		return op_lbu(instruction);	
+	case 100001: 
+		return op_lh(instruction);	
+	case 100101: 
+		return op_lhu(instruction);	
+	case 1111: 
+		return op_lui(instruction);	
+	case 100011: 
+		return op_lw(instruction);	
+	case 100010: 
+		return op_lwl(instruction);	
+	case 100110: 
+		return op_lwr(instruction);
+	case 101000: 
+		return op_sb(instruction);
+	case 101001: 
+		return op_sh(instruction);
+	case 101011: 
+		return op_sw(instruction);
+	case 101010: 
+		return op_swl(instruction);
+	case 101110: 
+		return op_swr(instruction);
+
+	}
 }
  
+void parseJForm (jform instruction) {
+	switch (instruction.opcode) {
+		case 10:
+			return op_j(instruction);
+		case 11: 
+			return op_jal(instruction);
+	}
+}
 void op_add (rform instruction);
 void op_addi (iform instruction);
 void op_addiu (iform instruction);
