@@ -101,7 +101,7 @@ switch (instruction.opcode) {
 		return op_addiu(instruction);
 	case 0x0C: 
 		return op_andi(instruction);
-	case 001110: 
+	case 14: 
 		return op_xori(instruction);
 	case 0x0D: 
 		return op_ori(instruction);
@@ -111,9 +111,9 @@ switch (instruction.opcode) {
 		return op_sltiu(instruction);
 	case 0x04: 
 		return op_beq(instruction);
-	case 010100: 
+	case 20: 
 		return op_beql(instruction);
-	case 000001: {
+	case 1: {
 		switch (instruction.rt) {
 			case 00001: return op_bgez(instruction);
 			// case 10001: return op_bgezal(instruction);
@@ -131,33 +131,33 @@ switch (instruction.opcode) {
 		return op_blezl(instruction);
 	case 101: 
 		return op_bne(instruction);
-	case 10101: 
+	case 21: 
 		return op_bnel(instruction);
-	case 100000: 
+	case 32: 
 		return op_lb(instruction);
-	case 100100: 
+	case 36: 
 		return op_lbu(instruction);	
-	case 100001: 
+	case 33: 
 		return op_lh(instruction);	
-	case 100101: 
+	case 37: 
 		return op_lhu(instruction);	
-	case 1111: 
+	case 15: 
 		return op_lui(instruction);	
-	case 100011: 
+	case 35: 
 		return op_lw(instruction);	
-	case 100010: 
+	case 34: 
 		return op_lwl(instruction);	
-	case 100110: 
+	case 38: 
 		return op_lwr(instruction);
-	case 101000: 
+	case 40: 
 		return op_sb(instruction);
-	case 101001: 
+	case 41: 
 		return op_sh(instruction);
-	case 101011: 
+	case 43: 
 		return op_sw(instruction);
-	case 101010: 
+	case 42: 
 		return op_swl(instruction);
-	case 101110: 
+	case 46: 
 		return op_swr(instruction);
 
 	}
