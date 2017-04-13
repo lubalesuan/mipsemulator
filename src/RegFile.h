@@ -9,7 +9,7 @@
 extern int32_t RegFile[NUMBER_OF_REGS];
 extern void initRegFile(int32_t val);
 extern void printRegFile();
-
+extern int32_t *returnRegFile();
 
 #endif
 

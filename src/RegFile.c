@@ -24,6 +24,8 @@ void printRegFile() {
         }
 }
 
-
+int32_t *returnRegFile() {
+    return RegFile;
+}
 
 

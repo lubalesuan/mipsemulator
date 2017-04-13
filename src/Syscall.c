@@ -130,7 +130,7 @@ void SyscallExe(uint32_t SID) {
     case 4246 :
     case 4001:{ printf(" ----- Execution Complete -----  \n"); 
                 printf("Program Exiting ");
-                syscall(SYS_exit, RegFile[4]);
+               // syscall(SYS_exit, RegFile[4]);
                 break;}
     case 4003:{ printf("SYSCALL Read File:\n");//read
                 printf("Uninplemented \n");

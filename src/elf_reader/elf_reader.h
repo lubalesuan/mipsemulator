@@ -49,37 +49,34 @@ typedef struct Exe_Format {
 
 
 struct execinfo{
-
-        int GSP;        // global stack pointer
-        int GRA; // global return address
-        int GPC_START;  // starting PC
-        int HEAPSTART;  // start of heap
-        int BREAKSTART; // start of break
-        int GP; //Global Pointer (r28)
+    int GSP;        // global stack pointer
+    int GRA; // global return address
+    int GPC_START;  // starting PC
+    int HEAPSTART;  // start of heap
+    int BREAKSTART; // start of break
+    int GP; //Global Pointer (r28)
 };
 
 
 struct syscall_addresses {
-
-        uint32_t LIBC_OPEN_ADDRESS;
-        uint32_t LIBC_READ_ADDRESS;
-        uint32_t EXIT_ADDRESS;
-        uint32_t MUNMAP_ADDRESS;
-        uint32_t GETEUID_ADDRESS;
-        uint32_t GETUID_ADDRESS;
-        uint32_t UNAME_ADDRESS;
-        uint32_t GETPID_ADDRESS;
-        uint32_t GETGID_ADDRESS;
-        uint32_t GETEGID_ADDRESS;
-        uint32_t LIBC_MALLOC_ADDRESS;
-        uint32_t CFREE_ADDRESS;
-        uint32_t FXSTAT64_ADDRESS;
-        uint32_t MMAP_ADDRESS;
-        uint32_t BRK_ADDRESS;
-        uint32_t LIBC_WRITE_ADDRESS;
-        uint32_t CXX_EX_AND_ADD_ADDRESS;
-        uint32_t CXX_ATOMIC_ADD_ADDRESS;
-
+    uint32_t LIBC_OPEN_ADDRESS;
+    uint32_t LIBC_READ_ADDRESS;
+    uint32_t EXIT_ADDRESS;
+    uint32_t MUNMAP_ADDRESS;
+    uint32_t GETEUID_ADDRESS;
+    uint32_t GETUID_ADDRESS;
+    uint32_t UNAME_ADDRESS;
+    uint32_t GETPID_ADDRESS;
+    uint32_t GETGID_ADDRESS;
+    uint32_t GETEGID_ADDRESS;
+    uint32_t LIBC_MALLOC_ADDRESS;
+    uint32_t CFREE_ADDRESS;
+    uint32_t FXSTAT64_ADDRESS;
+    uint32_t MMAP_ADDRESS;
+    uint32_t BRK_ADDRESS;
+    uint32_t LIBC_WRITE_ADDRESS;
+    uint32_t CXX_EX_AND_ADD_ADDRESS;
+    uint32_t CXX_ATOMIC_ADD_ADDRESS;
 };
 
 extern struct syscall_addresses syscalls;

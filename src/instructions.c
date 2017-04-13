@@ -7,24 +7,32 @@
 #include "utils/heap.h"
 #include "elf_reader/elf_reader.h"
 #include "instructions.h"
+#include <inttypes.h>
+int32_t *regfile;
+int op_sllv (struct rform instruction);
 
-void parseInstruction(uint32_t instruction) {
-	 instruction = (jform) instruction; //cast to generic form of instruction
-	 switch (instruction.opcode) {
-	 	case 0x00:
-	 		parseRForm(instruction); //parsing for r format operations
-	 		break;
+int parseInstruction(uint32_t instruction, int32_t *reg) {
+	regfile = reg;
+	//struct jform *instr = (struct jform *)malloc(sizeof(struct jform));
+	struct jform *instrJ = (struct jform*)&instruction;
+	 switch (instrJ->opcode) {
+	 	case 0x00: {
+	 		struct rform *instrR = (struct rform*)&instruction;
+	 		return parseRForm(*instrR); //parsing for r format operations
+	 	}
 	 	case 0x02:
 	 	case 0x03:
-	 		parseJForm(instruction);
-	 		break;
-	 	default: 
-	 		parseIForm(instruction);
+	 		return parseJForm(*instrJ);
+	 	default: {
+	 		struct iform *instrI = (struct iform*)&instruction;
+	 		return parseIForm(*instrI);
+	 	}
 	 }
+	 //return 0;
 }
 
 
-void parseRForm (rform instruction) {
+int parseRForm (struct rform instruction) {
 	switch (instruction.funct) {
 		case 0x20:
 			return op_add(instruction);
@@ -60,8 +68,6 @@ void parseRForm (rform instruction) {
 			return op_or (instruction);
 		case 0:
 			return op_sll (instruction);
-		case 100:
-			return op_sllv (instruction);
 		case 101010:
 			return op_slt (instruction);
 		case 101011:
@@ -80,12 +86,14 @@ void parseRForm (rform instruction) {
 			return op_jr (instruction);
 		case 1100:
 			return op_syscall (instruction);
-		case 0: //check if sll  = nop
+		case 100:
+			return op_sllv (instruction);
+		default: //check if sll  = nop case 0
 			return op_nop (instruction);
 	}
 }
 
-void parseIForm (iform instruction) {
+int parseIForm (struct iform instruction) {
 switch (instruction.opcode) {
 	case 0x08: 
 		return op_addi(instruction);
@@ -105,20 +113,22 @@ switch (instruction.opcode) {
 		return op_beq(instruction);
 	case 010100: 
 		return op_beql(instruction);
-	case 000001: 
-		return op_bgez(instruction);
-	case 000001: //same opcode
-		return op_bgezal(instruction);
+	case 000001: {
+		switch (instruction.rt) {
+			case 00001: return op_bgez(instruction);
+			// case 10001: return op_bgezal(instruction);
+			case 00000: return op_bltz(instruction);
+			case 10000: return op_bltzal(instruction);
+			default: return 0;
+		}
+		
+	}
 	case 111: 
 		return op_bgtz(instruction);
 	case 110: 
 		return op_blez(instruction);
 	case 10110: 
 		return op_blezl(instruction);
-	case 000001: //same opcode
-		return op_bltz(instruction);
-	case 000001: //same opcode
-		return op_bltzal(instruction);
 	case 101: 
 		return op_bne(instruction);
 	case 10101: 
@@ -151,73 +161,201 @@ switch (instruction.opcode) {
 		return op_swr(instruction);
 
 	}
+	return 0;
 }
  
-void parseJForm (jform instruction) {
+int parseJForm (struct jform instruction) {
 	switch (instruction.opcode) {
 		case 10:
 			return op_j(instruction);
 		case 11: 
 			return op_jal(instruction);
 	}
+	return 0;
 }
-void op_add (rform instruction);
-void op_addi (iform instruction);
-void op_addiu (iform instruction);
-void op_addu (rform instruction);
-void op_sub (rform instruction);
-void op_subu (rform instruction);
-void op_div (rform instruction);
-void op_divu (rform instruction);
-void op_mult (rform instruction);
-void op_multu (rform instruction);
-void op_mfhi (rform instruction);
-void op_mflo (rform instruction);
-void op_mthi (rform instruction);
-void op_mtlo (rform instruction);
-void op_and (rform instruction); 
-void op_andi (iform instruction); 
-void op_xor (rform instruction);
-void op_xori (iform instruction);
-void op_nor (rform instruction);
-void op_or (rform instruction);
-void op_ori (iform instruction);
-void op_sll(rform instruction);
-void op_slv (rform instruction);
-void op_slt (rform instruction);
-void op_slti (iform instruction);
-void op_sltiu (iform instruction);
-void op_sltu (rform instruction);
-void op_sra (rform instruction);
-void op_srav (rform instruction);
-void op_srl (rform instruction);
-void op_srlv (rform instruction);
-void op_beq (iform instruction);
-void op_beql (iform instruction);
-void op_bgez (iform instruction);
-void op_bgtz (iform instruction);
-void op_blez (iform instruction);
-void op_blezl (iform instruction);
-void op_bltz (iform instruction);
-void op_bltzal (iform instruction);
-void op_bne (iform instruction);
-void op_bnel (iform instruction);
-void op_j (jform instruction);
-void op_jal (jform instruction);
-void op_jalr (rform instruction);
-void op_jr (rform instruction);
-void op_lb (iform instruction);
-void op_lbu (iform instruction);
-void op_lh (iform instruction);
-void op_lhu (iform instruction);
-void op_lui (iform instruction);
-void op_lw (iform instruction);
-void op_lwl (iform instruction);
-void op_lwr (iform instruction);
-void op_sb (iform instruction);
-void op_sh (iform instruction);
-void op_sw (iform instruction);
-void op_swl (iform instruction);
-void op_swr (iform instruction);
-void op_syscall (rform instruction);
-void op_nop (rform instruction);
+
+int op_add (struct rform instruction) {
+	int rs = regfile[instruction.rs];
+	int rt = regfile[instruction.rt];
+	int rd = regfile[instruction.rd];
+	rd = rs + rt;
+	regfile[instruction.rd] = rd;
+	return rd;
+}
+int op_addi (struct iform instruction) {
+	return 0;
+}
+int op_addiu (struct iform instruction) {
+	return 0;
+}
+int op_addu (struct rform instruction) {
+	return 0;
+}
+int op_sub (struct rform instruction) {
+	return 0;
+}
+int op_subu (struct rform instruction) {
+	return 0;
+}
+int op_div (struct rform instruction) {
+	return 0;
+}
+int op_divu (struct rform instruction) {
+	return 0;
+}
+int op_mult (struct rform instruction) {
+	return 0;
+}
+int op_multu (struct rform instruction){
+	return 0;
+}
+int op_mfhi (struct rform instruction) {
+	return 0;
+}
+int op_mflo (struct rform instruction) {
+	return 0;
+}
+int op_mthi (struct rform instruction) {
+	return 0;
+}
+int op_mtlo (struct rform instruction) {
+	return 0;
+}
+int op_and (struct rform instruction) {
+	return 0;
+}
+int op_andi (struct iform instruction) {
+	return 0;
+} 
+int op_xor (struct rform instruction) {
+	return 0;
+}
+int op_xori (struct iform instruction)  {
+	return 0;
+}
+int op_nor (struct rform instruction) {
+	return 0;
+}
+int op_or (struct rform instruction) {
+	return 0;
+}
+int op_ori (struct iform instruction) {
+	return 0;
+}
+int op_sll(struct rform instruction) {
+	return 0;
+}
+int op_slv (struct rform instruction) {
+	return 0;
+}
+int op_slt (struct rform instruction) {
+	return 0;
+}
+int op_slti (struct iform instruction) {
+	return 0;
+}
+int op_sltiu (struct iform instruction) {
+	return 0;
+}
+int op_sltu (struct rform instruction) {
+	return 0;
+}
+int op_sra (struct rform instruction) {
+	return 0;
+}
+int op_srav (struct rform instruction) {
+	return 0;
+}
+int op_srl (struct rform instruction) {
+	return 0;
+}
+int op_srlv (struct rform instruction) {
+	return 0;
+}
+int op_beq (struct iform instruction) {
+	return 0;
+}
+int op_beql (struct iform instruction) {
+	return 0;
+}
+int op_bgez (struct iform instruction) {
+	return 0;
+}
+int op_bgtz (struct iform instruction) {
+	return 0;
+}
+int op_blez (struct iform instruction) {
+	return 0;
+}
+int op_blezl (struct iform instruction) {
+	return 0;
+}
+int op_bltz (struct iform instruction) {
+	return 0;
+}
+int op_bltzal (struct iform instruction) {
+	return 0;
+}
+int op_bne (struct iform instruction) {
+	return 0;
+}
+int op_bnel (struct iform instruction) {
+	return 0;
+}
+int op_j (struct jform instruction) {
+	return 0;
+}
+int op_jal (struct jform instruction) {
+	return 0;
+}
+int op_jalr (struct rform instruction) {
+	return 0;
+}
+int op_jr (struct rform instruction) {
+	return 0;
+}
+int op_lb (struct iform instruction) {
+	return 0;
+}
+int op_lbu (struct iform instruction) {
+	return 0;
+}
+int op_lh (struct iform instruction) {
+	return 0;
+}
+int op_lhu (struct iform instruction) {
+	return 0;
+}
+int op_lui (struct iform instruction) {
+	return 0;
+}
+int op_lw (struct iform instruction) {
+	return 0;
+}
+int op_lwl (struct iform instruction) {
+	return 0;
+}
+int op_lwr (struct iform instruction) {
+	return 0;
+}
+int op_sb (struct iform instruction) {
+	return 0;
+}
+int op_sh (struct iform instruction) {
+	return 0;
+}
+int op_sw (struct iform instruction) {
+	return 0;
+}
+int op_swl (struct iform instruction) {
+	return 0;
+}
+int op_swr (struct iform instruction) {
+	return 0;
+}
+int op_syscall (struct rform instruction) {
+	return 0;
+}
+int op_nop (struct rform instruction) {
+	return 0;
+}

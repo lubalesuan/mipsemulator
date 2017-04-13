@@ -40,7 +40,8 @@ int main(int argc, char * argv[]) {
     initHeap();
     initFDT();
     initRegFile(0);
-    
+    //get regfile
+    int32_t *RegFile = returnRegFile();
     //Load required code portions into Emulator Memory
     status =  LoadOSMemory(argv[1]);
     if(status <0) { return status; }
@@ -56,7 +57,7 @@ int main(int argc, char * argv[]) {
         DynInstCount++;
         PC++;
         CurrentInstruction = readWord(PC,false);  
-        parseInstruction(CurrentInstruction);
+        parseInstruction(CurrentInstruction, RegFile);
         printRegFile();
             
     } //end fori
