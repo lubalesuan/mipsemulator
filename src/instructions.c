@@ -54,39 +54,39 @@ int parseRForm (struct rform instruction) {
 			return op_mfhi (instruction);
 		case 0x12:
 			return op_mflo (instruction);
-		case 10001:
+		case 17:
 			return op_mthi (instruction);
-		case 10011:
+		case 19:
 			return op_mtlo (instruction);
-		case 100100:
+		case 36:
 			return op_and (instruction);
-		case 100110:
+		case 38:
 			return op_xor (instruction);
-		case 100111:
+		case 39:
 			return op_nor (instruction);
-		case 100101:
+		case 37:
 			return op_or (instruction);
 		case 0:
 			return op_sll (instruction);
-		case 101010:
+		case 42:
 			return op_slt (instruction);
-		case 101011:
+		case 43:
 			return op_slt (instruction);
-		case 11:
+		case 3:
 			return op_sra (instruction);
-		case 111:
+		case 7:
 			return op_srav (instruction);
 		case 10:
 			return op_srl (instruction);
-		case 110:
+		case 6:
 			return op_srlv (instruction);
-		case 1001:
+		case 9:
 			return op_jalr (instruction);
-		case 1000:
+		case 8:
 			return op_jr (instruction);
-		case 1100:
+		case 12:
 			return op_syscall (instruction);
-		case 100:
+		case 4:
 			return op_sllv (instruction);
 		default: //check if sll  = nop case 0
 			return op_nop (instruction);
@@ -115,21 +115,21 @@ switch (instruction.opcode) {
 		return op_beql(instruction);
 	case 1: {
 		switch (instruction.rt) {
-			case 00001: return op_bgez(instruction);
+			case 1: return op_bgez(instruction);
 			// case 10001: return op_bgezal(instruction);
-			case 00000: return op_bltz(instruction);
-			case 10000: return op_bltzal(instruction);
+			case 0: return op_bltz(instruction);
+			case 16: return op_bltzal(instruction);
 			default: return 0;
 		}
 		
 	}
-	case 111: 
+	case 7: 
 		return op_bgtz(instruction);
-	case 110: 
+	case 6: 
 		return op_blez(instruction);
-	case 10110: 
+	case 22: 
 		return op_blezl(instruction);
-	case 101: 
+	case 5: 
 		return op_bne(instruction);
 	case 21: 
 		return op_bnel(instruction);
@@ -166,9 +166,9 @@ switch (instruction.opcode) {
  
 int parseJForm (struct jform instruction) {
 	switch (instruction.opcode) {
-		case 10:
+		case 2:
 			return op_j(instruction);
-		case 11: 
+		case 3: 
 			return op_jal(instruction);
 	}
 	return 0;
@@ -189,21 +189,61 @@ int op_addiu (struct iform instruction) {
 	return 0;
 }
 int op_addu (struct rform instruction) {
-	return 0;
+	uint32_t rs = regfile[instruction.rt];
+	uint32_t rt = regfile[instruction.rt];//check conversion
+	uint32_t rd = rs + rt;
+	regfile[instruction.rd] = rd;
+	return rd;
 }
 int op_sub (struct rform instruction) {
-	return 0;
+	int rs = regfile[instruction.rs];
+	int rt = regfile[instruction.rt];
+	int rd = regfile[instruction.rd];
+	rd = rs - rt;
+	regfile[instruction.rd] = rd;
+	return rd;
 }
 int op_subu (struct rform instruction) {
-	return 0;
+	uint32_t rs = regfile[instruction.rt];
+	uint32_t rt = regfile[instruction.rt];//check conversion
+	uint32_t rd = rs - rt;
+	regfile[instruction.rd] = rd;
+	return rd;
 }
 int op_div (struct rform instruction) {
-	return 0;
+	//divide by 0
+	int lo = regfile[instruction.shamt];
+	int hi = regfile[instruction.rd];
+	int rs = regfile[instruction.rs];
+	int rt = regfile[instruction.rt];
+	lo = rs/rt; //get div
+	hi = rs%rt; //get mod
+	regfile[instruction.shamt] = lo;
+	regfile[instruction.rd] = hi;
+	return lo;
 }
-int op_divu (struct rform instruction) {
-	return 0;
+int op_divu (struct rform instruction) {//check
+	uint32_t lo = regfile[instruction.shamt];
+	uint32_t hi = regfile[instruction.rd];
+	uint32_t rs = regfile[instruction.rs];
+	uint32_t rt = regfile[instruction.rt];
+	lo = rs/rt; //get div
+	hi = rs%rt; //get mod
+	regfile[instruction.shamt] = lo;
+	regfile[instruction.rd] = hi;
+	return lo;
 }
 int op_mult (struct rform instruction) {
+	int lo = regfile[instruction.shamt];
+	int hi = regfile[instruction.rd];
+	int rs = regfile[instruction.rs];
+	int rt = regfile[instruction.rt];
+	int prod = rs*rt; //get product
+	struct prod_bit {
+		unsigned int low_bit: 32;
+		unsigned int high_bit: 32;
+	};
+	//STOPPED HERE
 	return 0;
 }
 int op_multu (struct rform instruction){
@@ -222,7 +262,12 @@ int op_mtlo (struct rform instruction) {
 	return 0;
 }
 int op_and (struct rform instruction) {
-	return 0;
+	int rs = regfile[instruction.rs];
+	int rt = regfile[instruction.rt];
+	int rd = regfile[instruction.rd];
+	rd = rs&rt;
+	regfile[instruction.rd] = rd;
+	return rd;
 }
 int op_andi (struct iform instruction) {
 	return 0;
