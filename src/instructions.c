@@ -9,7 +9,6 @@
 #include "instructions.h"
 #include <inttypes.h>
 int32_t *regfile;
-int op_sllv (struct rform instruction);
 
 int parseInstruction(uint32_t instruction, int32_t *reg) {
 	regfile = reg;
@@ -175,126 +174,128 @@ int parseJForm (struct jform instruction) {
 }
 
 int op_add (struct rform instruction) {
-	int rs = regfile[instruction.rs];
-	int rt = regfile[instruction.rt];
-	int rd = regfile[instruction.rd];
-	rd = rs + rt;
-	regfile[instruction.rd] = rd;
-	return rd;
+	regfile[instruction.rd] = regfile[instruction.rs]+regfile[instruction.rt];//rd = rs + rt
+	return regfile[instruction.rd];
 }
 int op_addi (struct iform instruction) {
-	return 0;
+	int imm = regfile[instruction.constaddr]<<16;//low = imm, high = sign extension
+	regfile[instruction.rt] = regfile[instruction.rs] + imm;
+	return regfile[instruction.rt];
 }
 int op_addiu (struct iform instruction) {
-	return 0;
+	uint32_t imm = regfile[instruction.constaddr]<<16;//low = imm, high = sign extension
+	regfile[instruction.rt] = (uint32_t)regfile[instruction.rs] + imm;
+	return regfile[instruction.rt];
 }
 int op_addu (struct rform instruction) {
-	uint32_t rs = regfile[instruction.rt];
-	uint32_t rt = regfile[instruction.rt];//check conversion
-	uint32_t rd = rs + rt;
-	regfile[instruction.rd] = rd;
-	return rd;
+	regfile[instruction.rd] = (uint32_t)regfile[instruction.rs]+(uint32_t)regfile[instruction.rt];//rd = rs + rt
+	return regfile[instruction.rd];
 }
 int op_sub (struct rform instruction) {
-	int rs = regfile[instruction.rs];
-	int rt = regfile[instruction.rt];
-	int rd = regfile[instruction.rd];
-	rd = rs - rt;
-	regfile[instruction.rd] = rd;
-	return rd;
+	regfile[instruction.rd] = regfile[instruction.rs]-regfile[instruction.rt];//rd = rs + rt
+	return regfile[instruction.rd];
 }
 int op_subu (struct rform instruction) {
-	uint32_t rs = regfile[instruction.rt];
-	uint32_t rt = regfile[instruction.rt];//check conversion
-	uint32_t rd = rs - rt;
-	regfile[instruction.rd] = rd;
-	return rd;
+	regfile[instruction.rd] = (uint32_t)regfile[instruction.rs]-(uint32_t)regfile[instruction.rt];//rd = rs + rt
+	return regfile[instruction.rd];
 }
 int op_div (struct rform instruction) {
 	//divide by 0
-	int lo = regfile[instruction.shamt];
-	int hi = regfile[instruction.rd];
-	int rs = regfile[instruction.rs];
-	int rt = regfile[instruction.rt];
-	lo = rs/rt; //get div
-	hi = rs%rt; //get mod
-	regfile[instruction.shamt] = lo;
-	regfile[instruction.rd] = hi;
-	return lo;
+	regfile[32] = regfile[instruction.rs]/regfile[instruction.rt]; //lo = rs/rt
+	regfile[33] = regfile[instruction.rs]%regfile[instruction.rt]; //high = rs mod rt
+	return regfile[32];
 }
 int op_divu (struct rform instruction) {//check
-	uint32_t lo = regfile[instruction.shamt];
-	uint32_t hi = regfile[instruction.rd];
-	uint32_t rs = regfile[instruction.rs];
-	uint32_t rt = regfile[instruction.rt];
-	lo = rs/rt; //get div
-	hi = rs%rt; //get mod
-	regfile[instruction.shamt] = lo;
-	regfile[instruction.rd] = hi;
-	return lo;
+	regfile[32] = (uint32_t)regfile[instruction.rs]/(uint32_t)regfile[instruction.rt]; //lo = rs/rt
+	regfile[33] = (uint32_t)regfile[instruction.rs]%(uint32_t)regfile[instruction.rt]; //high = rs mod rt
+	return regfile[32];
 }
+//CHECK CHECK CHECK
 int op_mult (struct rform instruction) {
-	int lo = regfile[instruction.shamt];
-	int hi = regfile[instruction.rd];
-	int rs = regfile[instruction.rs];
-	int rt = regfile[instruction.rt];
-	int prod = rs*rt; //get product
+	double prod = regfile[instruction.rs]*regfile[instruction.rt]; //prod = rs*rt
 	struct prod_bit {
 		unsigned int low_bit: 32;
 		unsigned int high_bit: 32;
 	};
-	//STOPPED HERE
-	return 0;
+	struct prod_bit *multres = (struct prod_bit*)&prod;
+	regfile[32] = multres->low_bit;
+	regfile[33] = multres->high_bit;//make sure this works
+	return multres->low_bit;
 }
+//CHECK CHECK CHECK
 int op_multu (struct rform instruction){
-	return 0;
+	uint32_t prod = (uint32_t)(regfile[instruction.rs]*regfile[instruction.rt]); //get product
+	struct prod_bit {
+		unsigned int low_bit: 32;
+		unsigned int high_bit: 32;
+	};
+	struct prod_bit *multres = (struct prod_bit*)&prod;//CHECK DIS
+	regfile[32] = multres->low_bit; //put low in reg[33]
+	regfile[33] = multres->high_bit;
+	return multres->low_bit;
 }
 int op_mfhi (struct rform instruction) {
-	return 0;
+	regfile[instruction.rd] = regfile[33]; //rd = high
+	return regfile[instruction.rd];
 }
 int op_mflo (struct rform instruction) {
-	return 0;
+	regfile[instruction.rd] = regfile[32]; //rd = low
+	return regfile[instruction.rd];
 }
 int op_mthi (struct rform instruction) {
-	return 0;
+	regfile[33] = regfile[instruction.rs]; //high = rs
+	return regfile[33];
 }
 int op_mtlo (struct rform instruction) {
-	return 0;
+	regfile[32] = regfile[instruction.rs]; //low = rs
+	return regfile[32];
 }
 int op_and (struct rform instruction) {
-	int rs = regfile[instruction.rs];
-	int rt = regfile[instruction.rt];
-	int rd = regfile[instruction.rd];
-	rd = rs&rt;
-	regfile[instruction.rd] = rd;
-	return rd;
+	regfile[instruction.rd] = regfile[instruction.rs]&regfile[instruction.rt];
+	return regfile[instruction.rd];
 }
 int op_andi (struct iform instruction) {
-	return 0;
+	int imm = (regfile[instruction.constaddr]<<16)&(0x0000ffff);//zero extended imm
+	regfile[instruction.rt] = regfile[instruction.rs]&imm;
+	return regfile[instruction.rt];
 } 
 int op_xor (struct rform instruction) {
-	return 0;
+	regfile[instruction.rd] = regfile[instruction.rs]^regfile[instruction.rt];
+	return regfile[instruction.rd];
 }
 int op_xori (struct iform instruction)  {
-	return 0;
+	int imm = (regfile[instruction.constaddr]<<16)&(0x0000ffff);//zero extended imm
+	regfile[instruction.rt] = regfile[instruction.rs]^imm;
+	return regfile[instruction.rt];
 }
 int op_nor (struct rform instruction) {
-	return 0;
+	regfile[instruction.rd] = ~(regfile[instruction.rs]|regfile[instruction.rt]);
+	return regfile[instruction.rd];
 }
 int op_or (struct rform instruction) {
-	return 0;
+	regfile[instruction.rd] = regfile[instruction.rs]|regfile[instruction.rt];
+	return regfile[instruction.rd];
 }
 int op_ori (struct iform instruction) {
-	return 0;
+	int imm = (regfile[instruction.constaddr]<<16)&(0x0000ffff);//zero extended imm
+	regfile[instruction.rt] = regfile[instruction.rs]|imm;
+	return regfile[instruction.rt];
 }
 int op_sll(struct rform instruction) {
-	return 0;
+	uint32_t rtU = regfile[instruction.rt];//convert to unsigned for 0-padding
+	rtU = rtU<<(regfile[instruction.shamt]);//shift left by indicated shift amount
+	return (regfile[instruction.rd] = rtU);
 }
-int op_slv (struct rform instruction) {
+int op_sllv (struct rform instruction) {
 	return 0;
 }
 int op_slt (struct rform instruction) {
-	return 0;
+	if (regfile[instruction.rs]<regfile[instruction.rt]) {//rs<rt?
+		regfile[instruction.rd] = 1;
+	} else {
+		regfile[instruction.rd] = 0;
+	}
+	return regfile[instruction.rd];
 }
 int op_slti (struct iform instruction) {
 	return 0;
@@ -303,7 +304,12 @@ int op_sltiu (struct iform instruction) {
 	return 0;
 }
 int op_sltu (struct rform instruction) {
-	return 0;
+	if ((uint32_t)regfile[instruction.rs]<(uint32_t)regfile[instruction.rt]) {//rs<rt?
+		regfile[instruction.rd] = 1;
+	} else {
+		regfile[instruction.rd] = 0;
+	}
+	return regfile[instruction.rd];
 }
 int op_sra (struct rform instruction) {
 	return 0;
@@ -404,3 +410,18 @@ int op_syscall (struct rform instruction) {
 int op_nop (struct rform instruction) {
 	return 0;
 }
+// int * get_register (struct rform instruction)  {
+// 	int reg[3];
+// 	reg[0] = regfile[instruction.rs];
+// 	reg[1] = regfile[instruction.rt];
+// 	reg[2] = regfile[instruction.rd];
+// 	return reg; //return pointer to registers
+// }
+
+// uint32_t * get_registerU (struct rform instruction) {
+// 	uint32_t reg[3];
+// 	reg[0] = regfile[instruction.rs];
+// 	reg[1] =  (uint32_t)regfile[instruction.rt];
+// 	reg[2] = (uint32_t)regfile[instruction.rd];
+// 	return reg;
+// }
