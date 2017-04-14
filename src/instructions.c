@@ -283,11 +283,15 @@ int op_ori (struct iform instruction) {
 }
 int op_sll(struct rform instruction) {
 	uint32_t rtU = regfile[instruction.rt];//convert to unsigned for 0-padding
-	rtU = rtU<<(regfile[instruction.shamt]);//shift left by indicated shift amount
+	rtU = rtU<<regfile[instruction.shamt];//shift left by indicated shift amount
 	return (regfile[instruction.rd] = rtU);
 }
 int op_sllv (struct rform instruction) {
-	return 0;
+	uint32_t rtU = regfile[instruction.rt];//convert to unsigned for 0-padding
+	uint32_t shift = regfile[instruction.rs];
+	shift = shift&0x1f;//get first 5 bits
+	rtU = rtU<<shift;
+	return (regfile[instruction.rd] = rtU);
 }
 int op_slt (struct rform instruction) {
 	if (regfile[instruction.rs]<regfile[instruction.rt]) {//rs<rt?
@@ -298,10 +302,23 @@ int op_slt (struct rform instruction) {
 	return regfile[instruction.rd];
 }
 int op_slti (struct iform instruction) {
-	return 0;
+	int imm = regfile[instruction.constaddr]<<16;
+	if (regfile[instruction.rs]<imm) {//rs<im
+		regfile[instruction.rt] = 1;
+	} else {
+		regfile[instruction.rt] = 0;
+	}
+	return regfile[instruction.rt];
 }
+//CHECK
 int op_sltiu (struct iform instruction) {
-	return 0;
+	uint32_t imm = regfile[instruction.constaddr]<<16;
+	if ((uint32_t)regfile[instruction.rs]<imm) {//rs<im
+		regfile[instruction.rt] = 1;
+	} else {
+		regfile[instruction.rt] = 0;
+	}
+	return regfile[instruction.rt];
 }
 int op_sltu (struct rform instruction) {
 	if ((uint32_t)regfile[instruction.rs]<(uint32_t)regfile[instruction.rt]) {//rs<rt?
@@ -312,16 +329,26 @@ int op_sltu (struct rform instruction) {
 	return regfile[instruction.rd];
 }
 int op_sra (struct rform instruction) {
-	return 0;
+	regfile[instruction.rd]= regfile[instruction.rt]>>regfile[instruction.shamt];
+	return regfile[instruction.rd];
 }
 int op_srav (struct rform instruction) {
-	return 0;
+	uint32_t shift = regfile[instruction.rs];
+	shift = shift&0x1f;//get first 5 bits
+	regfile[instruction.rd] = regfile[instruction.rt]>>shift;
+	return regfile[instruction.rd];
 }
 int op_srl (struct rform instruction) {
-	return 0;
+	uint32_t rtU = regfile[instruction.rt];//convert to unsigned for 0-padding
+	rtU = rtU>>regfile[instruction.shamt];//shift left by indicated shift amount
+	return (regfile[instruction.rd] = rtU);
 }
 int op_srlv (struct rform instruction) {
-	return 0;
+	uint32_t rtU = regfile[instruction.rt];//convert to unsigned for 0-padding
+	uint32_t shift = regfile[instruction.rs];
+	shift = shift&0x1f;//get first 5 bits
+	rtU = rtU>>shift;
+	return (regfile[instruction.rd] = rtU);
 }
 int op_beq (struct iform instruction) {
 	return 0;
