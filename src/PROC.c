@@ -7,10 +7,11 @@
 #include "utils/heap.h"
 #include "elf_reader/elf_reader.h"
 #include "instructions.h"
+#include "global.h"
 //Stats
 
 uint32_t DynInstCount = 0;
-
+uint32_t PC;
 void write_initialization_vector(uint32_t sp, uint32_t gp, uint32_t start) {
         printf("\n ----- BOOT Sequence ----- \n");
         printf("Initializing sp=0x%08x; gp=0x%08x; start=0x%08x\n", sp, gp, start);
@@ -27,7 +28,6 @@ int main(int argc, char * argv[]) {
     int MaxInst = 0;
     int status = 0;
     uint32_t i; 
-    uint32_t PC;
     // uint32_tnewPC;
     uint32_t CurrentInstruction;
 
@@ -54,6 +54,7 @@ int main(int argc, char * argv[]) {
     printf("\n ----- Execute Program ----- \n");
     printf("Max Instruction to run = %d \n",MaxInst);
     PC = exec.GPC_START;
+
     for(i=0; i<MaxInst ; i++) {
         DynInstCount++;
         PC++;

@@ -1,5 +1,6 @@
 #ifndef INSTRUCTIONS_H_
 #define INSTRUCTIONS_H_
+
 //structs for different formats of instructions
 struct jform{
 	unsigned int data: 26;
@@ -91,6 +92,7 @@ extern int op_swr (struct iform instruction);
 extern int op_syscall (struct rform instruction);
 extern int op_nop (struct rform instruction);
 
+extern int setPC(int passPC);
 //method to get signed rt, rs, rd
 // extern int * get_register(struct rform instruction);
 // extern uint32_t * get_registerU(struct rform instruction);

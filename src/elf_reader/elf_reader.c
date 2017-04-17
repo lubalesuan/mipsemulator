@@ -148,6 +148,21 @@ uint32_t readWord(uint32_t ADDR,bool DEBUG) {
     return temp;
 
 }
+//CHECK!!!
+uint16_t readHalfWord(uint32_t ADDR,bool DEBUG) {
+    uint16_t temp;
+    bool DEBUG1 = false;
+    temp = readByte(ADDR + 0,DEBUG1);
+    temp = temp << 8;
+    temp = temp | readByte(ADDR + 1,DEBUG1);
+    temp = temp << 8;
+   // temp = temp | readByte(ADDR + 2,DEBUG1);
+    //temp = temp << 8;
+    // temp = temp | readByte(ADDR + 3,DEBUG1);
+    if(DEBUG) printf("READWD : Addr = 0x%08x Data = 0x%08x \n",ADDR,temp);
+    return temp;
+
+}
 
 void init_syscalls() {
         syscalls.CFREE_ADDRESS = 0xFFFFFFF0;

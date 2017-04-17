@@ -8,7 +8,9 @@
 #include "elf_reader/elf_reader.h"
 #include "instructions.h"
 #include <inttypes.h>
+#include "global.h"
 int32_t *regfile;
+
 
 int parseInstruction(uint32_t instruction, int32_t *reg) {
 	regfile = reg;
@@ -350,15 +352,26 @@ int op_srlv (struct rform instruction) {
 	rtU = rtU>>shift;
 	return (regfile[instruction.rd] = rtU);
 }
+//CHECK should b wrong
 int op_beq (struct iform instruction) {
+	if (regfile[instruction.rs] == regfile[instruction.rt]) {//branch if rs == rt
+		int target = regfile[instruction.constaddr]<<2;//CHECK dis
+		PC = PC + 4+ target;
+		return target;
+	}
 	return 0;
 }
 int op_beql (struct iform instruction) {
 	return 0;
 }
+//CHECK
 int op_bgez (struct iform instruction) {
-	return 0;
-}
+	if (regfile[instruction.rs] >=0) {//branch if rs == rt
+		int target = regfile[instruction.constaddr]<<2;//CHECK dis
+		PC = PC + 4+ target;
+		return target;
+	}
+	return 0;}
 int op_bgtz (struct iform instruction) {
 	return 0;
 }
@@ -392,29 +405,69 @@ int op_jalr (struct rform instruction) {
 int op_jr (struct rform instruction) {
 	return 0;
 }
+//CHECK
 int op_lb (struct iform instruction) {
-	return 0;
+	//int mem = readByte()
+	int offset = regfile[instruction.constaddr]<<16;//will dis be 0?
+	uint32_t mem = offset + regfile[instruction.rs]; //base + offset
+	int byte = readByte(mem,false)<<24;//sign extend the byte
+	regfile[instruction.rt] = byte;
+	return regfile[instruction.rt];
 }
 int op_lbu (struct iform instruction) {
-	return 0;
+	int offset = regfile[instruction.constaddr]<<16;
+	uint32_t mem = offset + regfile[instruction.rs]; //base + offset
+	uint32_t byte = readByte(mem,false);//sign extend the byte
+	byte = byte<<24;
+	regfile[instruction.rt] = byte;
+	return regfile[instruction.rt];
 }
 int op_lh (struct iform instruction) {
-	return 0;
+	int offset = regfile[instruction.constaddr]<<16;
+	uint32_t mem = offset + regfile[instruction.rs]; //base + offset
+	if (mem<<31 != 0) {
+		printf("woops Adress Error exception");
+		return 0;
+	} else {
+	int halfword = readWord(mem,false);//sign extend the byte
+	//STOPPED HERE
+	return regfile[instruction.rt];
+
+	}
 }
 int op_lhu (struct iform instruction) {
 	return 0;
 }
+//CHECK
 int op_lui (struct iform instruction) {
+	uint32_t imm = regfile[instruction.constaddr];
+	imm = imm<<16;//load immediate
+	regfile[instruction.rt] = imm;
 	return 0;
 }
+//CHECK
 int op_lw (struct iform instruction) {
-	return 0;
+	int offset = regfile[instruction.constaddr]<<16;
+	uint32_t mem = offset + regfile[instruction.rs]; //base + offset
+	regfile[instruction.rt] = readWord(mem,false);
+	return regfile[instruction.rt];
 }
+//CHECK
 int op_lwl (struct iform instruction) {
-	return 0;
+	int offset = regfile[instruction.constaddr]<<16;
+	uint32_t mem = offset + regfile[instruction.rs]; //base + offset
+	int msb = readWord(mem,false);
+	msb = msb>>16;//put this in most significant 2 bytes
+	regfile [instruction.rt] = msb;
+	return regfile[instruction.rt];
 }
 int op_lwr (struct iform instruction) {
-	return 0;
+	int offset = regfile[instruction.constaddr]<<16;
+	uint32_t mem = offset + regfile[instruction.rs]; //base + offset
+	int msb = readWord(mem,false);
+	msb = msb<<16;//put this in ;east significant 2 bytes
+	regfile [instruction.rt] = msb;
+	return regfile[instruction.rt];
 }
 int op_sb (struct iform instruction) {
 	return 0;
@@ -435,8 +488,10 @@ int op_syscall (struct rform instruction) {
 	return 0;
 }
 int op_nop (struct rform instruction) {
+	//sll r0 r0 0
 	return 0;
 }
+
 // int * get_register (struct rform instruction)  {
 // 	int reg[3];
 // 	reg[0] = regfile[instruction.rs];
