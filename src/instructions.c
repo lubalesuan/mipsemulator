@@ -371,7 +371,8 @@ int op_bgez (struct iform instruction) {
 		PC = PC + 4+ target;
 		return target;
 	}
-	return 0;}
+	return 0;
+}
 int op_bgtz (struct iform instruction) {
 	return 0;
 }
