@@ -23,7 +23,7 @@ struct iform{
 	unsigned int opcode: 6;		
 };
 //parse instructions into formats
-extern int parseInstruction(uint32_t instruction, int32_t *regfile);
+extern int parseInstruction(uint32_t instruction);
 //parse formats into types of instructions 
 extern int parseRForm (struct rform instruction);
 extern int parseIForm (struct iform instruction);
@@ -91,8 +91,6 @@ extern int op_swl (struct iform instruction);
 extern int op_swr (struct iform instruction);
 extern int op_syscall (struct rform instruction);
 extern int op_nop (struct rform instruction);
-
-extern int setPC(int passPC);
 //method to get signed rt, rs, rd
 // extern int * get_register(struct rform instruction);
 // extern uint32_t * get_registerU(struct rform instruction);

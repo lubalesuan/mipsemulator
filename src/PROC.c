@@ -12,12 +12,13 @@
 
 uint32_t DynInstCount = 0;
 uint32_t PC;
+int32_t *regfile;
 void write_initialization_vector(uint32_t sp, uint32_t gp, uint32_t start) {
         printf("\n ----- BOOT Sequence ----- \n");
         printf("Initializing sp=0x%08x; gp=0x%08x; start=0x%08x\n", sp, gp, start);
-        RegFile[28] = gp;
-        RegFile[29] = sp;
-        RegFile[31] = start;
+        regfile[28] = gp;
+        regfile[29] = sp;
+        regfile[31] = start;
         printRegFile();
 
     }
@@ -42,7 +43,7 @@ int main(int argc, char * argv[]) {
     initFDT();
     initRegFile(0);
     //get regfile
-    int32_t *RegFile = returnRegFile();
+    regfile = returnRegFile();
     //Load required code portions into Emulator Memory
     status =  LoadOSMemory(argv[1]);
     if(status <0) { return status; }
@@ -57,10 +58,10 @@ int main(int argc, char * argv[]) {
 
     for(i=0; i<MaxInst ; i++) {
         DynInstCount++;
-        PC++;
-        CurrentInstruction = readWord(PC,false);  
-        parseInstruction(CurrentInstruction, RegFile);
+        CurrentInstruction = readWord(PC,false); 
+        parseInstruction(CurrentInstruction);
         printRegFile();
+        PC++;
             
     } //end fori
     
