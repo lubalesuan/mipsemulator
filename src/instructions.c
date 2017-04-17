@@ -351,39 +351,45 @@ int op_srlv (struct rform instruction) {
 	rtU = rtU>>shift;
 	return (regfile[instruction.rd] = rtU);
 }
-//CHECK should b wrong
+//===============branch on equal===============
+//execute branch delay slot. if rs == rt, jump to target address
 int op_beq (struct iform instruction) {
-	uint32_t nextInstruction = readWord(PC+4, false);
+	uint32_t nextInstruction = readWord(PC++, false);
 	parseInstruction(nextInstruction);//execute next instruction in branch delay slot 
 	int offset = regfile[instruction.constaddr]<<2;
 	offset = offset&0xfffffffc;
 	if (regfile[instruction.rs] == regfile [instruction.rt]) {
-		PC = PC+4+offset;
-		return PC;
+		PC = PC+1+offset;
 	} else {	//parseInstruction()
-	PC = PC+8; //as already implemented PC + 4 move on to following one
+	PC = PC+1; //as we already implemented PC + 4 move on to following one
 	}
-}
-int op_beql (struct iform instruction) {
-	if (regfile[instruction.rs] == regfile [instruction.rt]) {
-		uint32_t nextInstruction = readWord(PC+4, false);
-		int offset = regfile[instruction.constaddr]<<2;
-		offset = offset&0xfffffffc;
-		parseInstruction(nextInstruction);//execute next instruction in branch delay slot 
-		PC = PC+4+offset;
-	} 
 	return PC;
 }
-//CHECK
+//===============branch on equal likely===============
+//if rs == rt, execute branch delay slot, and branch. else, skip branch delay slot
+int op_beql (struct iform instruction) {
+	if (regfile[instruction.rs] == regfile [instruction.rt]) {
+		uint32_t nextInstruction = readWord(PC++, false);
+		parseInstruction(nextInstruction);//execute next instruction in branch delay slot 
+		int offset = regfile[instruction.constaddr]<<2;
+		offset = offset&0xfffffffc;
+		PC = PC+1+offset;
+	} else {
+		PC = PC+1; //skip branch delay
+	}
+	return PC;
+}
+//===============branch on >= 0===============
+//execute branch delay slot. if rs >= 0, branch. else, move to instruction after branch delay slot
 int op_bgez (struct iform instruction) {
-	uint32_t nextInstruction = readWord(PC+4, false);
+	uint32_t nextInstruction = readWord(PC+1, false);
 	parseInstruction(nextInstruction);//execute next instruction in branch delay slot 
 	int offset = regfile[instruction.constaddr]<<2;
-	offset = offset&0xfffffffc;
+	offset = offset&0xfffffffc;//2 low bits = 0
 	if (regfile[instruction.rs]>=0) {
-		PC = PC+4+offset;
+		PC = PC+1+offset;
 	} else {	//parseInstruction()
-	PC = PC+8; //as already implemented PC + 4 move on to following one
+	PC = PC+1; //as already implemented PC + 4 move on to following one
 		}
 	return PC;
 }
@@ -422,16 +428,45 @@ int op_blezl (struct iform instruction) {
 	return PC;
 }
 int op_bltz (struct iform instruction) {
-	return 0;
+	uint32_t nextInstruction = readWord(PC+4, false);
+	parseInstruction(nextInstruction);//execute next instruction in branch delay slot 
+	int offset = regfile[instruction.constaddr]<<2;
+	offset = offset&0xfffffffc;
+	if (regfile[instruction.rs]<0) {
+		PC = PC+4+offset;
+	} else {	//parseInstruction()
+	PC = PC+8; //as already implemented PC + 4 move on to following one
+		}
+	return PC;
 }
 int op_bltzal (struct iform instruction) {
 	return 0;
 }
+//===============branch on not equal===============
 int op_bne (struct iform instruction) {
-	return 0;
-}
+	uint32_t nextInstruction = readWord(PC+4, false);
+	parseInstruction(nextInstruction);//execute next instruction in branch delay slot 
+	int offset = regfile[instruction.constaddr]<<2;
+	offset = offset&0xfffffffc;
+	if (regfile[instruction.rs]!=regfile[instruction.rt]) {
+		PC = PC+4+offset;
+	} else {	//parseInstruction()
+	PC = PC+8; //as already implemented PC + 4 move on to following one
+		}
+	return PC;}
+//===============branch on not likely===============
+//if rs != rt, execute branch delay slot, and branch. else, skip branch delay slot.
 int op_bnel (struct iform instruction) {
-	return 0;
+	if (regfile[instruction.rs]!=regfile[instruction.rt]) {
+		uint32_t nextInstruction = readWord(PC+4, false);
+		int offset = regfile[instruction.constaddr]<<2;
+		offset = offset&0xfffffffc;
+		parseInstruction(nextInstruction);//execute next instruction in branch delay slot 
+		PC = PC+4+offset;
+	} else {
+		PC = PC+8;//skip instruction in exec slot
+	}
+	return PC;
 }
 int op_j (struct jform instruction) {
 	return 0;
