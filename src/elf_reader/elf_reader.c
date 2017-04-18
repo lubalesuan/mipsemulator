@@ -148,8 +148,20 @@ uint32_t readWord(uint32_t ADDR,bool DEBUG) {
     return temp;
 
 }
+
+void writeHalfWord(uint32_t ADDR, uint16_t DATA,bool DEBUG1) {
+    uint8_t temp;
+    bool DEBUG = DEBUG1;
+
+    if(DEBUG1) printf(" WRITE WORD: Addr = %x Data = %x \n",ADDR,DATA);
+    temp = DATA;
+    writeByte(ADDR + 1,temp,DEBUG);
+    temp = DATA >> 24;
+    writeByte(ADDR + 0,temp,DEBUG);
+
+}
 //CHECK!!!
-uint16_t readHalfWord(uint32_t ADDR,bool DEBUG) {
+int16_t readHalfWord(uint32_t ADDR,bool DEBUG) {
     uint16_t temp;
     bool DEBUG1 = false;
     temp = readByte(ADDR + 0,DEBUG1);
