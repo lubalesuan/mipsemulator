@@ -33,6 +33,9 @@ int parseInstruction(uint32_t instruction) {
 
 
 int parseRForm (struct rform instruction) {
+	// printR("rform ", regfile[instruction.rd], regfile[instruction.rs], regfile[instruction.rt]);
+	// printReg(instruction.funct, 6);
+	printf("opcode  %d  rs %d rt %d funct %d shamt %d\n", instruction.opcode, instruction.rs, instruction.rt, instruction.funct, instruction.shamt);
 	switch (instruction.funct) {
 		case 0x20:
 			return op_add(instruction);
@@ -80,7 +83,7 @@ int parseRForm (struct rform instruction) {
 	 	}
 		case 7:
 			return op_srav (instruction);
-		case 10:
+		case 2:
 			return op_srl (instruction);
 		case 6:
 			return op_srlv (instruction);
@@ -101,6 +104,9 @@ int syscallForm (struct syscallform instruction) {
 	return 0;
 }
 int parseIForm (struct iform instruction) {
+	// printI("iform ", regfile[instruction.rs], regfile[instruction.rt], instruction.constaddr);
+	printf("opcode  %d  rs %d rt %d imm %d\n", instruction.opcode, instruction.rs, instruction.rt, instruction.constaddr);
+
 switch (instruction.opcode) {
 	case 0x08: 
 		return op_addi(instruction);
@@ -183,24 +189,18 @@ int parseJForm (struct jform instruction) {
 
 void printR(char *name, int rd, int rs, int rt) {
 	printf(" %s\n", name);
- 	printf("rd: %s\n", printReg(rd, 32));
-	printf("rs: %s\n", printReg(rt, 32));
-	printf("rt: %s\n\n", printReg(rs, 32));
+ 	printf("rd: %d\n", rd);
+	printf("rs: %d\n", rs);
+	printf("rt: %d\n\n", rt);
 }
 
 void printI(char *name,  int rs, int rt, uint16_t imm) {
 	printf(" %s\n", name);
-	printf("rs: %s\n", printReg(rt, 32));
-	printf("rt: %s\n", printReg(rs, 32));
-	printf("imm: %s \n\n", printReg(imm, 16) );
+	printf("rs: %d\n", rs);
+	printf("rt: %d\n", rt);
+	printf("imm: %d \n\n", imm );
 }
 
-// void printJ(char *name,  int rs, int rt, uint16_t imm) {
-// 	printf(" %s\n", name);
-// 	printf("rs: %s\n", printReg(rt, 32));
-// 	printf("rt: %s\n", printReg(rs, 32));
-// 	printf("imm: %s \n\n", printReg(imm, 16) );
-// }
 //===============add===============
 int op_add (struct rform instruction) {	
 	printR("add ", regfile[instruction.rd], regfile[instruction.rs], regfile[instruction.rt]);
@@ -210,9 +210,13 @@ int op_add (struct rform instruction) {
 }
 //===============add immediate===============
 int op_addi (struct iform instruction) {
-	printI("addi bfo", regfile[instruction.rs], regfile[instruction.rt], instruction.constaddr);	
+	printI("addi bfo", regfile[instruction.rs], regfile[instruction.rt], instruction.constaddr);
+	// printI("addi bfo", regfile[instruction.rs], regfile[instruction.rt], instruction.constaddr);	
 	int imm = instruction.constaddr;
-	regfile[instruction.rt] = regfile[instruction.rs] + imm;
+	int rs = regfile[instruction.rs];
+	int sum = imm +rs;
+	printf("sum %d \n", sum);
+	regfile[instruction.rt] = sum;
 	printI("addi after", regfile[instruction.rs], regfile[instruction.rt], instruction.constaddr);	
 	return regfile[instruction.rt];
 }
@@ -268,8 +272,8 @@ int op_divu (struct rform instruction) {//check
 }
 //===============multiply===============
 int op_mult (struct rform instruction) {
-	printR("mult bfo ", regfile[instruction.rs], regfile[32], regfile[33]);
-	double prod = regfile[instruction.rs]*regfile[instruction.rt]; //prod = rs*rt
+	printR("mult bfo ", regfile[instruction.rs], regfile[instruction.rt], regfile[33]);
+	int prod = regfile[instruction.rs]*regfile[instruction.rt]; //prod = rs*rt
 	struct prod_bit {
 		unsigned int low_bit: 32;
 		unsigned int high_bit: 32;
@@ -376,7 +380,7 @@ int op_sll(struct rform instruction) {
 	rtU = rtU<<instruction.shamt;//shift left by indicated shift amount
 	regfile[instruction.rd] = rtU;
 	printR("sll after ", regfile[instruction.rd], regfile[instruction.rs], regfile[instruction.rt]);
-	printf("%s \n", printReg(instruction.shamt, 5));
+	printf("%d \n", instruction.shamt);
 	return regfile[instruction.rd];
 }
 int op_sllv (struct rform instruction) {
@@ -436,7 +440,7 @@ int op_sra (struct rform instruction) {
 	printR("sra bfo ", regfile[instruction.rd], regfile[instruction.rs], regfile[instruction.rt]);
 	regfile[instruction.rd]= regfile[instruction.rt]>>instruction.shamt;
 	printR("sra after ", regfile[instruction.rd], regfile[instruction.rs], regfile[instruction.rt]);
-	printf("%s \n", printReg(instruction.shamt, 5));
+	printf("%d \n", instruction.shamt);
 	return regfile[instruction.rd];
 }
 int op_srav (struct rform instruction) {
@@ -453,7 +457,7 @@ int op_srl (struct rform instruction) {
 	rtU = rtU>>instruction.shamt;//shift left by indicated shift amount
 	regfile[instruction.rd] = rtU;
 	printR("srl after ", regfile[instruction.rd], regfile[instruction.rs], regfile[instruction.rt]);
-	printf("%s \n", printReg(instruction.shamt, 5));
+	printf("%d \n", instruction.shamt);
 	return regfile[instruction.rd];
 }
 int op_srlv (struct rform instruction) {
@@ -470,14 +474,14 @@ int op_srlv (struct rform instruction) {
 int op_beq (struct iform instruction) {
 	printI("beq bfo", regfile[instruction.rs], regfile[instruction.rt], instruction.constaddr);	
 	printf("PC %d \n", PC);
-	uint32_t nextInstruction = readWord(PC+1, false);
+	uint32_t nextInstruction = readWord(PC+4, false);
 	parseInstruction(nextInstruction);//execute next instruction in branch delay slot 
 	int offset = instruction.constaddr<<2;
 	offset = offset&0xfffffffc;
 	if (regfile[instruction.rs] == regfile [instruction.rt]) {
 		PC = PC+offset;
 	} else {	//parseInstruction()
-	PC = PC+1; //as we already implemented PC + 4 move on to following one
+	PC = PC+4; //as we already implemented PC + 4 move on to following one
 	}
 	printf("PC after %d \n\n", PC);
 	return PC;
@@ -488,13 +492,13 @@ int op_beql (struct iform instruction) {
 	printI("beql bfo", regfile[instruction.rs], regfile[instruction.rt], instruction.constaddr);	
 	printf("PC %d \n", PC);
 	if (regfile[instruction.rs] == regfile [instruction.rt]) {
-		uint32_t nextInstruction = readWord(PC+1, false);
+		uint32_t nextInstruction = readWord(PC+4, false);
 		parseInstruction(nextInstruction);//execute next instruction in branch delay slot 
 		int offset = instruction.constaddr<<2;
 		offset = offset&0xfffffffc;//lower 2 bits = 0
 		PC = PC+offset;
 	} else {
-		PC = PC+1; //skip branch delay
+		PC = PC+4; //skip branch delay
 	}
 	printf("PC after %d \n\n", PC);
 	return PC;
@@ -504,14 +508,14 @@ int op_beql (struct iform instruction) {
 int op_bgez (struct iform instruction) {
 	printI("bgez bfo", regfile[instruction.rs], regfile[instruction.rt], instruction.constaddr);	
 	printf("PC %d \n", PC);
-	uint32_t nextInstruction = readWord(PC+1, false);
+	uint32_t nextInstruction = readWord(PC+4, false);
 	parseInstruction(nextInstruction);//execute next instruction in branch delay slot 
 	int offset = instruction.constaddr<<2;
 	offset = offset&0xfffffffc;//2 low bits = 0
 	if (regfile[instruction.rs]>=0) {
 		PC = PC+offset;
 	} else {	//parseInstruction()
-		PC = PC+1; //as already implemented PC + 4 move on to following one
+		PC = PC+4; //as already implemented PC + 4 move on to following one
 		}
 	printf("PC %d \n\n", PC);
 	return PC;
@@ -521,14 +525,14 @@ int op_bgez (struct iform instruction) {
 int op_bgtz (struct iform instruction) {
 	printI("bgtz bfo", regfile[instruction.rs], regfile[instruction.rt], instruction.constaddr);	
 	printf("PC %d \n", PC);
-	uint32_t nextInstruction = readWord(PC+1, false);
+	uint32_t nextInstruction = readWord(PC+4, false);
 	parseInstruction(nextInstruction);//execute next instruction in branch delay slot 
 	int offset = instruction.constaddr<<2;
 	offset = offset&0xfffffffc;
 	if (regfile[instruction.rs]>0) {
 		PC = PC+offset;
 	} else {	//parseInstruction()
-		PC = PC+1; //as already implemented PC + 4 move on to following one
+		PC = PC+4; //as already implemented PC + 4 move on to following one
 		}
 	printf("PC %d \n\n", PC);
 	return PC;
@@ -538,14 +542,14 @@ int op_bgtz (struct iform instruction) {
 int op_blez (struct iform instruction) {
 	printI("blez bfo", regfile[instruction.rs], regfile[instruction.rt], instruction.constaddr);	
 	printf("PC %d \n", PC);
-	uint32_t nextInstruction = readWord(PC+1, false);
+	uint32_t nextInstruction = readWord(PC+4, false);
 	parseInstruction(nextInstruction);//execute next instruction in branch delay slot 
 	int offset = instruction.constaddr<<2;
 	offset = offset&0xfffffffc;
 	if (regfile[instruction.rs]<=0) {
 		PC = PC+offset;
 	} else {	//parseInstruction()
-	PC = PC+1; //as already implemented PC + 4 move on to following one
+	PC = PC+4; //as already implemented PC + 4 move on to following one
 		}
 	printf("PC %d \n\n", PC);
 	return PC;
@@ -556,13 +560,13 @@ int op_blezl (struct iform instruction) {
 	printI("blezl bfo", regfile[instruction.rs], regfile[instruction.rt], instruction.constaddr);	
 	printf("PC %d \n", PC);
 	if (regfile[instruction.rs]<=0) {
-		uint32_t nextInstruction = readWord(PC+1, false);
+		uint32_t nextInstruction = readWord(PC+4, false);
 		int offset = instruction.constaddr<<2;
 		offset = offset&0xfffffffc;
 		parseInstruction(nextInstruction);//execute next instruction in branch delay slot 
 		PC = PC+offset;
 	} else {
-		PC = PC +1; //skip next instr
+		PC = PC+4; //skip next instr
 	}
 	printf("PC %d \n\n", PC);
 	return PC;
@@ -572,14 +576,14 @@ int op_blezl (struct iform instruction) {
 int op_bltz (struct iform instruction) {
 	printI("bltz bfo", regfile[instruction.rs], regfile[instruction.rt], instruction.constaddr);	
 	printf("PC %d \n", PC);
-	uint32_t nextInstruction = readWord(PC+1, false);
+	uint32_t nextInstruction = readWord(PC+4, false);
 	parseInstruction(nextInstruction);//execute next instruction in branch delay slot 
 	int offset = instruction.constaddr<<2;
 	offset = offset&0xfffffffc;
 	if (regfile[instruction.rs]<0) {
 		PC = PC+offset;
 	} else {	//parseInstruction()
-	PC = PC+1; //as already implemented PC + 4 move on to following one
+	PC = PC+4; //as already implemented PC + 4 move on to following one
 		}
 	printf("PC %d \n\n", PC);
 	return PC;
@@ -587,8 +591,8 @@ int op_bltz (struct iform instruction) {
 int op_bltzal (struct iform instruction) {
 	printI("bltzal bfo", regfile[instruction.rs], regfile[instruction.rt], instruction.constaddr);	
 	printf("PC %d \n", PC);
-	regfile[31] = PC+1;
-	uint32_t nextInstruction = readWord(PC+1, false);
+	regfile[31] = PC+4;
+	uint32_t nextInstruction = readWord(PC+4, false);
 	parseInstruction(nextInstruction);//execute next instruction in branch delay slot 
 	if (regfile[instruction.rs]<0) {
 		int offset = instruction.constaddr<<2;
@@ -606,14 +610,14 @@ int op_bltzal (struct iform instruction) {
 int op_bne (struct iform instruction) {
 	printI("bne bfo", regfile[instruction.rs], regfile[instruction.rt], instruction.constaddr);	
 	printf("PC %d \n", PC);
-	uint32_t nextInstruction = readWord(PC+1, false);
+	uint32_t nextInstruction = readWord(PC+4, false);
 	parseInstruction(nextInstruction);//execute next instruction in branch delay slot 
 	int offset = instruction.constaddr<<2;
 	offset = offset&0xfffffffc;//2 0s in lower bits
 	if (regfile[instruction.rs]!=regfile[instruction.rt]) {
 		PC = PC+offset;
 	} else {	//parseInstruction()
-	PC = PC+1; //as already implemented PC + 4 move on to following one
+	PC = PC+4; //as already implemented PC + 4 move on to following one
 		}
 	printf("PC %d \n\n", PC);
 	return PC;
@@ -624,13 +628,13 @@ int op_bnel (struct iform instruction) {
 	printI("bnel bfo", regfile[instruction.rs], regfile[instruction.rt], instruction.constaddr);	
 	printf("PC %d \n", PC);
 	if (regfile[instruction.rs]!=regfile[instruction.rt]) {
-		uint32_t nextInstruction = readWord(PC+1, false);
+		uint32_t nextInstruction = readWord(PC+4, false);
 		parseInstruction(nextInstruction);//execute next instruction in branch delay slot 
 		int offset = regfile[instruction.constaddr]<<2;
 		offset = offset&0xfffffffc;
 		PC = PC+offset;
 	} else {
-		PC = PC+1;//skip instruction in exec slot
+		PC = PC+4;//skip instruction in exec slot
 	}
 	printf("PC %d \n\n", PC);
 	return PC;
@@ -642,13 +646,13 @@ int op_j (struct jform instruction) {
 	printf("jump %d \n", PC);
 	uint32_t instr_index = instruction.data;
 	instr_index = instr_index<<2;
-	uint32_t pcbits = (PC+1)&0xf; //get 4 first bits 
+	uint32_t pcbits = (PC+4)&0xf; //get 4 first bits 
 	pcbits = pcbits<<28; //put pcbits in location 28-32
 	instr_index = instr_index | pcbits; //concat instr index with pc bits
 	int savePC = PC;
-	uint32_t nextInstruction = readWord(PC+1, false);
+	uint32_t nextInstruction = readWord(PC+4, false);
 	parseInstruction(nextInstruction);
-	PC = savePC+instr_index-1;
+	PC = savePC+instr_index-4;
 	printf("PC %d \n\n", PC);
 	return 0;
 }
@@ -656,34 +660,34 @@ int op_jal (struct jform instruction) {
 	printf("jal %d \n", PC);
 	uint32_t instr_index = instruction.data;
 	instr_index = instr_index<<2;
-	uint32_t pcbits = (PC+1)&0xf; //get 4 first bits 
+	uint32_t pcbits = (PC+4)&0xf; //get 4 first bits 
 	pcbits = pcbits<<28; //put pcbits in location 28-32
 	instr_index = instr_index | pcbits; //concat instr index with pc bits
 	int savePC = PC;
-	uint32_t nextInstruction = readWord(PC+1, false);
+	uint32_t nextInstruction = readWord(PC+4, false);
 	parseInstruction(nextInstruction);
 	uint32_t jumpInstruction = readWord(PC+instr_index,false);//to execute jump
 	parseInstruction(jumpInstruction);
-	PC = savePC+1;//to skip branch delay slot
+	PC = savePC+4;//to skip branch delay slot
 	printf("PC %d \n\n", PC);
 	return 0;
 }
 int op_jalr (struct rform instruction) {
 	printf("jalr %d \n", PC);
-	regfile[instruction.rd] = PC+1;
-	uint32_t nextInstruction = readWord(PC+1, false);
+	regfile[instruction.rd] = PC+4;
+	uint32_t nextInstruction = readWord(PC+4, false);
 	parseInstruction(nextInstruction);
 	uint32_t jumpInstruction = readWord(regfile[instruction.rs],false);//to execute jump
 	parseInstruction(jumpInstruction);
-	PC = regfile[instruction.rd]-1; //PC = next instruction
+	PC = regfile[instruction.rd]-4; //PC = next instruction
 	printf("PC %d \n\n", PC);
 	return 0;
 }
 int op_jr (struct rform instruction) {
 	printf("jr %d \n", PC);
-	uint32_t nextInstruction = readWord(PC+1, false);
+	uint32_t nextInstruction = readWord(PC+4, false);
 	parseInstruction(nextInstruction);
-	PC = regfile[instruction.rs]-1; //check dis
+	PC = regfile[instruction.rs]-4; //check dis
 	printf("PC %d \n\n", PC);
 	return 0;
 }
@@ -764,7 +768,7 @@ int op_sb (struct iform instruction) {
 	int offset = instruction.constaddr;
 	uint32_t mem = offset+regfile[instruction.rs];
 	writeByte(mem,byte,false);
-	printf("byte %d \n", printReg(byte));
+	printf("byte %d \n", byte);
 	printI("lh after",regfile[instruction.rt], mem, instruction.constaddr);
 	return 0;
 }
@@ -774,6 +778,7 @@ int op_sh (struct iform instruction) {
 	int offset = instruction.constaddr;
 	uint32_t mem = offset+regfile[instruction.rs];
 	writeHalfWord(mem,halfword,false);
+	printI("sh after",regfile[instruction.rt], mem, instruction.constaddr);
 	return 0;
 }
 int op_sw (struct iform instruction) {
@@ -781,6 +786,7 @@ int op_sw (struct iform instruction) {
 	uint32_t word = regfile[instruction.rt];//get first 16 bits
 	int offset = instruction.constaddr;
 	uint32_t mem = offset+regfile[instruction.rs];
+	printI("sw after",regfile[instruction.rt], mem, instruction.constaddr);
 	writeWord(mem,word,false);
 	return 0;
 }
@@ -790,6 +796,7 @@ int op_swl (struct iform instruction) {
 	uint32_t mem = offset+regfile[instruction.rs];
 	uint16_t wl = regfile[instruction.rt]&0xffff0000; //get upper 16 bits
 	writeHalfWord(mem, wl, false);
+	printI("swl after",regfile[instruction.rt], mem, instruction.constaddr);
 	return 0;
 }
 int op_swr (struct iform instruction) {
@@ -798,13 +805,16 @@ int op_swr (struct iform instruction) {
 	uint32_t mem = offset+regfile[instruction.rs];
 	uint16_t wr = regfile[instruction.rt]&0xffff; //get lower 16 bits
 	writeHalfWord(mem, wr, false);
+	printI("swr after",regfile[instruction.rt], mem, instruction.constaddr);
 	return 0;
 }
 int op_syscall (struct syscallform instruction) {
+	printf("%s \n\n", "syscall");
 	SyscallExe(instruction.code);
 	return 0;
 }
 int op_nop (struct rform instruction) {
+	printf("%s \n\n", "nop");
 	//sll r0 r0 0
 	return 0;
 }
@@ -812,12 +822,14 @@ int op_nop (struct rform instruction) {
 //print a register as binary
 char* printReg (int x, int size) {
 	char *string;
-	    for (int i = 0; i < size; i++) {
-	        int maskcount = 1<<i;
-	        int masked_x = x&maskcount;
-	        int bit = masked_x>>i;
-	        string+=bit;
-	        // printf("%d : %d ",i, bit);
-	    }
+
+    for (int i = 0; i < size; i++) {
+        int maskcount = 1<<i;
+        int masked_x = x&maskcount;
+        int bit = masked_x>>i;
+        string+=bit;
+        printf("%d", bit);
+    }
+    printf("%s \n\n","");
     return string;
 }

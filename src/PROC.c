@@ -55,14 +55,17 @@ int main(int argc, char * argv[]) {
     printf("\n ----- Execute Program ----- \n");
     printf("Max Instruction to run = %d \n",MaxInst);
     PC = exec.GPC_START;
-
+     printf("%d \n", PC); 
     for(i=0; i<MaxInst ; i++) {
         DynInstCount++;
-        CurrentInstruction = readWord(PC,false); 
+        CurrentInstruction = readWord(PC,true); 
+        printf("instruction %x \n", CurrentInstruction);
+        printf("print smth %s \n", "");
+        // printReg(CurrentInstruction, 32);
         parseInstruction(CurrentInstruction);
-        printRegFile();
-        PC++;
-            
+        // printRegFile();
+        PC= PC+4;
+        printf("%d: %d \n", i, PC); 
     } //end fori
     
     

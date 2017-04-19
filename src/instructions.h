@@ -98,6 +98,8 @@ extern int op_swr (struct iform instruction);
 extern int op_syscall (struct syscallform instruction);
 extern int op_nop (struct rform instruction);
 extern char* printReg (int x, int size);
+extern void printR(char *name, int rd, int rs, int rt);
+extern void printI(char *name,  int rs, int rt, uint16_t imm);
 //method to get signed rt, rs, rd
 // extern int * get_register(struct rform instruction);
 // extern uint32_t * get_registerU(struct rform instruction);
