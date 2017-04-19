@@ -3,7 +3,7 @@
 
 //structs for different formats of instructions
 struct jform{
-	unsigned int data: 26;
+	int data: 26;
 	unsigned int opcode: 6;
 }; //abstract form of instruction
 
@@ -17,7 +17,7 @@ struct rform{
 };
 
 struct iform{
-	unsigned int constaddr: 16; // keep track of this dude
+	int constaddr: 16; // keep track of this dude
 	unsigned int rt: 5;
 	unsigned int rs: 5;
 	unsigned int opcode: 6;		
@@ -32,7 +32,7 @@ extern int parseInstruction(uint32_t instruction);
 //parse formats into types of instructions 
 extern int parseRForm (struct rform instruction);
 extern int parseIForm (struct iform instruction);
-extern int parseJForm (struct jform instruction);
+// extern int parseJForm (struct jform instruction);
 extern int syscallForm(struct syscallform instruction);
 //function for each type of instruction
 extern int op_add (struct rform instruction);

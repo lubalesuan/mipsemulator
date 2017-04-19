@@ -21,8 +21,9 @@ int parseInstruction(uint32_t instruction) {
 	 		return parseRForm(*instrR); //parsing for r format operations
 	 	}
 	 	case 0x02:
+	 		return op_j(instruction);
 	 	case 0x03:
-	 		return parseJForm(*instrJ);
+	 		return op_jal(instruction);
 	 	default: {
 	 		struct iform *instrI = (struct iform*)&instruction;
 	 		return parseIForm(*instrI);
@@ -114,7 +115,7 @@ switch (instruction.opcode) {
 		return op_addiu(instruction);
 	case 0x0C: 
 		return op_andi(instruction);
-	case 14: 
+	case 0xE: 
 		return op_xori(instruction);
 	case 0x0D: 
 		return op_ori(instruction);
@@ -124,9 +125,9 @@ switch (instruction.opcode) {
 		return op_sltiu(instruction);
 	case 0x04: 
 		return op_beq(instruction);
-	case 20: 
+	case 0x14: 
 		return op_beql(instruction);
-	case 1: {
+	case 0x1: {
 		switch (instruction.rt) {
 			case 1: return op_bgez(instruction);
 			// case 10001: return op_bgezal(instruction);
@@ -177,15 +178,15 @@ switch (instruction.opcode) {
 	return 0;
 }
  
-int parseJForm (struct jform instruction) {
-	switch (instruction.opcode) {
-		case 2:
-			return op_j(instruction);
-		case 3: 
-			return op_jal(instruction);
-	}
-	return 0;
-}
+// int parseJForm (struct jform instruction) {
+// 	switch (instruction.opcode) {
+// 		case 2:
+// 			return op_j(instruction);
+// 		case 3: 
+// 			return op_jal(instruction);
+// 	}
+// 	return 0;
+// }
 
 void printR(char *name, int rd, int rs, int rt) {
 	printf(" %s\n", name);
@@ -476,7 +477,8 @@ int op_beq (struct iform instruction) {
 	printf("PC %d \n", PC);
 	uint32_t nextInstruction = readWord(PC+4, false);
 	parseInstruction(nextInstruction);//execute next instruction in branch delay slot 
-	int offset = instruction.constaddr<<2;
+	int offset = (int16_t)instruction.constaddr;
+	offset = offset<<2;
 	offset = offset&0xfffffffc;
 	if (regfile[instruction.rs] == regfile [instruction.rt]) {
 		PC = PC+offset;
@@ -490,11 +492,12 @@ int op_beq (struct iform instruction) {
 //if rs == rt, execute branch delay slot, and branch. else, skip branch delay slot
 int op_beql (struct iform instruction) {
 	printI("beql bfo", regfile[instruction.rs], regfile[instruction.rt], instruction.constaddr);	
-	printf("PC %d \n", PC);
+	printf("PC bfo %d \n", PC);
 	if (regfile[instruction.rs] == regfile [instruction.rt]) {
 		uint32_t nextInstruction = readWord(PC+4, false);
 		parseInstruction(nextInstruction);//execute next instruction in branch delay slot 
-		int offset = instruction.constaddr<<2;
+		int offset = (int16_t)instruction.constaddr;
+		offset = offset<<2;
 		offset = offset&0xfffffffc;//lower 2 bits = 0
 		PC = PC+offset;
 	} else {
@@ -510,7 +513,8 @@ int op_bgez (struct iform instruction) {
 	printf("PC %d \n", PC);
 	uint32_t nextInstruction = readWord(PC+4, false);
 	parseInstruction(nextInstruction);//execute next instruction in branch delay slot 
-	int offset = instruction.constaddr<<2;
+	int offset = (int16_t)instruction.constaddr;
+	offset = offset<<2;
 	offset = offset&0xfffffffc;//2 low bits = 0
 	if (regfile[instruction.rs]>=0) {
 		PC = PC+offset;
@@ -527,7 +531,8 @@ int op_bgtz (struct iform instruction) {
 	printf("PC %d \n", PC);
 	uint32_t nextInstruction = readWord(PC+4, false);
 	parseInstruction(nextInstruction);//execute next instruction in branch delay slot 
-	int offset = instruction.constaddr<<2;
+	int offset = (int16_t)instruction.constaddr;
+	offset = offset<<2;
 	offset = offset&0xfffffffc;
 	if (regfile[instruction.rs]>0) {
 		PC = PC+offset;
@@ -544,7 +549,8 @@ int op_blez (struct iform instruction) {
 	printf("PC %d \n", PC);
 	uint32_t nextInstruction = readWord(PC+4, false);
 	parseInstruction(nextInstruction);//execute next instruction in branch delay slot 
-	int offset = instruction.constaddr<<2;
+	int offset = (int16_t)instruction.constaddr;
+	offset = offset<<2;
 	offset = offset&0xfffffffc;
 	if (regfile[instruction.rs]<=0) {
 		PC = PC+offset;
@@ -561,7 +567,8 @@ int op_blezl (struct iform instruction) {
 	printf("PC %d \n", PC);
 	if (regfile[instruction.rs]<=0) {
 		uint32_t nextInstruction = readWord(PC+4, false);
-		int offset = instruction.constaddr<<2;
+		int offset = (int16_t)instruction.constaddr;
+		offset = offset<<2;
 		offset = offset&0xfffffffc;
 		parseInstruction(nextInstruction);//execute next instruction in branch delay slot 
 		PC = PC+offset;
@@ -578,7 +585,8 @@ int op_bltz (struct iform instruction) {
 	printf("PC %d \n", PC);
 	uint32_t nextInstruction = readWord(PC+4, false);
 	parseInstruction(nextInstruction);//execute next instruction in branch delay slot 
-	int offset = instruction.constaddr<<2;
+	int offset = (int16_t)instruction.constaddr;
+	offset = offset<<2;
 	offset = offset&0xfffffffc;
 	if (regfile[instruction.rs]<0) {
 		PC = PC+offset;
@@ -595,7 +603,8 @@ int op_bltzal (struct iform instruction) {
 	uint32_t nextInstruction = readWord(PC+4, false);
 	parseInstruction(nextInstruction);//execute next instruction in branch delay slot 
 	if (regfile[instruction.rs]<0) {
-		int offset = instruction.constaddr<<2;
+		int offset = (int16_t)instruction.constaddr;
+		offset = offset<<2;
 		offset = offset&0xfffffffc;
 		PC = PC+offset;
 		uint32_t branchInstruction = readWord(PC+offset,false);//to execute jump
@@ -612,8 +621,10 @@ int op_bne (struct iform instruction) {
 	printf("PC %d \n", PC);
 	uint32_t nextInstruction = readWord(PC+4, false);
 	parseInstruction(nextInstruction);//execute next instruction in branch delay slot 
-	int offset = instruction.constaddr<<2;
+	int offset = (int16_t)instruction.constaddr;
+	offset = offset<<2;
 	offset = offset&0xfffffffc;//2 0s in lower bits
+	printf("shift offset %d", offset);
 	if (regfile[instruction.rs]!=regfile[instruction.rt]) {
 		PC = PC+offset;
 	} else {	//parseInstruction()
@@ -630,7 +641,8 @@ int op_bnel (struct iform instruction) {
 	if (regfile[instruction.rs]!=regfile[instruction.rt]) {
 		uint32_t nextInstruction = readWord(PC+4, false);
 		parseInstruction(nextInstruction);//execute next instruction in branch delay slot 
-		int offset = regfile[instruction.constaddr]<<2;
+		int offset = (int16_t)instruction.constaddr;
+		offset = offset<<2;
 		offset = offset&0xfffffffc;
 		PC = PC+offset;
 	} else {
@@ -644,8 +656,7 @@ int op_bnel (struct iform instruction) {
 //CHECK
 int op_j (struct jform instruction) {
 	printf("jump %d \n", PC);
-	uint32_t instr_index = instruction.data;
-	instr_index = instr_index<<2;
+	int instr_index = instruction.data<<2;
 	uint32_t pcbits = (PC+4)&0xf; //get 4 first bits 
 	pcbits = pcbits<<28; //put pcbits in location 28-32
 	instr_index = instr_index | pcbits; //concat instr index with pc bits
@@ -658,8 +669,7 @@ int op_j (struct jform instruction) {
 }
 int op_jal (struct jform instruction) {
 	printf("jal %d \n", PC);
-	uint32_t instr_index = instruction.data;
-	instr_index = instr_index<<2;
+	int instr_index = instruction.data<<2;
 	uint32_t pcbits = (PC+4)&0xf; //get 4 first bits 
 	pcbits = pcbits<<28; //put pcbits in location 28-32
 	instr_index = instr_index | pcbits; //concat instr index with pc bits
@@ -728,7 +738,7 @@ int op_lhu (struct iform instruction) {
 }
 int op_lui (struct iform instruction) {
 	printI("lui bfo",regfile[instruction.rt], regfile[instruction.rs], instruction.constaddr);
-	uint32_t imm = instruction.constaddr;
+	uint16_t imm = instruction.constaddr;
 	imm = imm<<16;//load immediate
 	regfile[instruction.rt] = imm;
 	printI("lui after",regfile[instruction.rt], regfile[instruction.rs], instruction.constaddr);
@@ -809,7 +819,7 @@ int op_swr (struct iform instruction) {
 	return 0;
 }
 int op_syscall (struct syscallform instruction) {
-	printf("%s \n\n", "syscall");
+	printf("syscall: code %d opcode %d funct %d\n\n", instruction.code, instruction.opcode, instruction.funct);
 	SyscallExe(instruction.code);
 	return 0;
 }
