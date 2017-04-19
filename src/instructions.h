@@ -32,7 +32,6 @@ extern int parseInstruction(uint32_t instruction);
 //parse formats into types of instructions 
 extern int parseRForm (struct rform instruction);
 extern int parseIForm (struct iform instruction);
-// extern int parseJForm (struct jform instruction);
 extern int syscallForm(struct syscallform instruction);
 //function for each type of instruction
 extern int op_add (struct rform instruction);
@@ -97,10 +96,6 @@ extern int op_swl (struct iform instruction);
 extern int op_swr (struct iform instruction);
 extern int op_syscall (struct syscallform instruction);
 extern int op_nop (struct rform instruction);
-extern char* printReg (int x, int size);
 extern void printR(char *name, int rd, int rs, int rt);
 extern void printI(char *name,  int rs, int rt, uint16_t imm);
-//method to get signed rt, rs, rd
-// extern int * get_register(struct rform instruction);
-// extern uint32_t * get_registerU(struct rform instruction);
 #endif
