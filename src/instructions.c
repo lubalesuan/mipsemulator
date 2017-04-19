@@ -180,14 +180,14 @@ switch (instruction.opcode) {
  
 
 
-void // printR(char *name, int rd, int rs, int rt) {
+void printR(char *name, int rd, int rs, int rt) {
 	// printf(" %s\n", name);
  	// printf("rd: %d\n", rd);
 	// printf("rs: %d\n", rs);
 	// printf("rt: %d\n\n", rt);
 }
 
-void // printI(char *name,  int rs, int rt, uint16_t imm) {
+void printI(char *name,  int rs, int rt, uint16_t imm) {
 	// printf(" %s\n", name);
 	// printf("rs: %d\n", rs);
 	// printf("rt: %d\n", rt);
